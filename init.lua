@@ -14,6 +14,8 @@ vim.cmd("set modeline")
 vim.cmd("set modelines=5")
 vim.cmd("set clipboard+=unnamedplus")
 vim.cmd("set nofoldenable")
+vim.cmd("set list")
+vim.cmd("set lcs+=space:·")
 vim.g.mapleader = " "
 
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
