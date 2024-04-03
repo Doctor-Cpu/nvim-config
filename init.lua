@@ -15,19 +15,19 @@ vim.cmd("set modelines=5")
 vim.cmd("set clipboard+=unnamedplus")
 vim.cmd("set nofoldenable")
 vim.cmd("set list")
-vim.cmd("set lcs+=space:·")
+vim.opt.listchars =  { eol = '↩', tab = '  ', space = '◦' }
 vim.g.mapleader = " "
 
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
-  vim.fn.system({
-    "git",
-    "clone",
-    "--filter=blob:none",
-    "https://github.com/folke/lazy.nvim.git",
-    "--branch=stable", -- latest stable release
-    lazypath,
-  })
+		vim.fn.system({
+				"git",
+				"clone",
+				"--filter=blob:none",
+				"https://github.com/folke/lazy.nvim.git",
+				"--branch=stable", -- latest stable release
+				lazypath,
+		})
 end
 vim.opt.rtp:prepend(lazypath)
 
@@ -47,8 +47,15 @@ local plugins = {
 
 		{ 'L3MON4D3/LuaSnip', version = "v2.*", build = "make install_jsregexp", dependencies = { 'rafamadriz/friendly-snippets', }},
 		{ 'saadparwaiz1/cmp_luasnip' },
-		{ 'NeogitOrg/neogit', dependencies = { "nvim-lua/plenary.nvim", "sindrets/diffview.nvim", "nvim-telescope/telescope.nvim" }},
+		{ 'nvimdev/lspsaga.nvim' },
+		{ 'NeogitOrg/neogit', version="nightly", dependencies = { "nvim-lua/plenary.nvim", "sindrets/diffview.nvim", "nvim-telescope/telescope.nvim" }},
+		{ 'lewis6991/gitsigns.nvim' },
 		{ 'IogaMaster/neocord', event = "VeryLazy" },
+		{ 'shellRaining/hlchunk.nvim' },
+		{ 'HiPhish/rainbow-delimiters.nvim' },
+		{ 'folke/noice.nvim', event = 'VeryLazy', dependencies = { 'rcarriga/nvim-notify' }},
+		{ 'RRethy/vim-illuminate' },
+		{ 'mvllow/modes.nvim' }
 }
 local opts = {}
 
@@ -64,8 +71,8 @@ require('nightfox').setup({
 								protan = 0.25,
 						},
 				},
-			}
-		})
+		}
+})
 vim.cmd("colorscheme nordfox")
 
 -- Fuzzy selector
@@ -85,7 +92,7 @@ require("telescope").load_extension("ui-select")
 vim.keymap.set('n', '<C-p>', builtin.find_files, {})
 vim.keymap.set('n', '<leader>fg', builtin.live_grep, {})
 
--- Treesitter
+-- Formating
 local configs = require("nvim-treesitter.configs")
 configs.setup({
 		ensure_installed = { "lua", "javascript", "html", "bash", "c", "c_sharp", "cmake", "css", "git_config", "git_rebase", "gitattributes", "gitcommit", "gitignore", "ini", "json", "make", "python", "rust", "yaml" },
@@ -93,8 +100,72 @@ configs.setup({
 		indent = { enable = true },
 })
 
+local highlight = {
+		"RainbowRed",
+		"RainbowYellow",
+		"RainbowBlue",
+		"RainbowOrange",
+		"RainbowGreen",
+		"RainbowViolet",
+		"RainbowCyan",
+}
+
+local style = {
+		"#E06c75",
+		"#E5C07B",
+		"#61AFEF",
+		"#D19A66",
+		"#98C379",
+		"#C678DD",
+		"#56B6C2"
+}
+vim.api.nvim_set_hl(0, "RainbowRed", { fg = "#E06C75" })
+vim.api.nvim_set_hl(0, "RainbowYellow", { fg = "#E5C07B" })
+vim.api.nvim_set_hl(0, "RainbowBlue", { fg = "#61AFEF" })
+vim.api.nvim_set_hl(0, "RainbowOrange", { fg = "#D19A66" })
+vim.api.nvim_set_hl(0, "RainbowGreen", { fg = "#98C379" })
+vim.api.nvim_set_hl(0, "RainbowViolet", { fg = "#C678DD" })
+vim.api.nvim_set_hl(0, "RainbowCyan", { fg = "#56B6C2" })
+
+require('hlchunk').setup({
+		chunk = {
+				style = {
+						{ fg = "#639bff" },
+						{ fg = "#700000" }
+				}
+		},
+		indent = {
+				chars = { "│", "¦", "┆", "┊", },
+				style = style
+		},
+		line_num = {
+				style = "#639bff"
+		},
+		blank = {
+				chars = {"⁚"},
+				style = style
+		}
+})
+require('rainbow-delimiters.setup').setup { highlight = highlight }
+
+require('illuminate').configure({})
+
 -- File Explorer
 vim.keymap.set('n', '<C-f>', ':Neotree filesystem reveal left<CR>', {})
+require("noice").setup({
+		lsp = {
+				override = {
+						["vim.lsp.util.convert_input_to_markdown_lines"] = false,
+						["vim.lsp.util.stylize_markdown"] = false,
+						["cmp.entry.get_documentation"] = false
+				}
+		},
+		presets = {
+				command_palette = true,
+				command_palette = true,
+				long_message_to_split = true,
+		}
+})
 
 -- GIt Status
 require('lualine').setup()
@@ -120,10 +191,23 @@ lspconfig.yamlls.setup({capabilities = capabilities})
 lspconfig.jedi_language_server.setup({capabilities = capabilities})
 lspconfig.csharp_ls.setup({capabilities = capabilities})
 
-vim.keymap.set('n', 'K', vim.lsp.buf.hover, {})
-vim.keymap.set('n', 'gd', vim.lsp.buf.definition, {})
-vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, {})
-vim.keymap.set({ 'n', 'v' }, '<leader>ca', vim.lsp.buf.code_action, {})
+require('lspsaga').setup {
+		symbol_in_winbar = { enable = false },
+		lightbulb = { enable = false },
+		ui = {
+				winblend = 100,
+				colors= { normal_bg = "NONE"
+				}
+		},
+		code_action = {
+				extend_gitsigns = true
+		}
+}
+
+vim.keymap.set('n', 'K', ':Lspsaga hover_doc<CR>', {})
+vim.keymap.set('n', 'gD', ':Lspsaga goto_definition<CR>', {})
+vim.keymap.set('n', 'gd', ':Lspsaga peek_definition<CR>', {})
+vim.keymap.set('n', 'gf', ':Lspsaga finder<CR>', {})
 
 vim.cmd("LspStart")
 
@@ -165,6 +249,13 @@ neogit.setup {
 				diffview = true,
 		}
 }
+
+local gitsigns = require("gitsigns")
+gitsigns.setup {}
+vim.keymap.set('n', '<leader-gb>', ':Gitsigns line_blame<CR>', {})
+
+
+
 -- Rpc
 local rpc = require("neocord")
 rpc.setup({})
