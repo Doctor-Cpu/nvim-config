@@ -48,7 +48,7 @@ local plugins = {
 		{ 'L3MON4D3/LuaSnip', version = "v2.*", build = "make install_jsregexp", dependencies = { 'rafamadriz/friendly-snippets', }},
 		{ 'saadparwaiz1/cmp_luasnip' },
 		{ 'nvimdev/lspsaga.nvim' },
-		{ 'NeogitOrg/neogit', version="nightly", dependencies = { "nvim-lua/plenary.nvim", "sindrets/diffview.nvim", "nvim-telescope/telescope.nvim" }},
+		{ 'NeogitOrg/neogit', branch="nightly", dependencies = { "nvim-lua/plenary.nvim", "sindrets/diffview.nvim", "nvim-telescope/telescope.nvim" }},
 		{ 'lewis6991/gitsigns.nvim' },
 		{ 'IogaMaster/neocord', event = "VeryLazy" },
 		{ 'shellRaining/hlchunk.nvim' },
@@ -71,6 +71,11 @@ require('nightfox').setup({
 								protan = 0.25,
 						},
 				},
+		},
+		groups = {
+				all = {
+						NormalFLoat = { fg = "fg1", bg = "NONE" },
+				}
 		}
 })
 vim.cmd("colorscheme nordfox")
