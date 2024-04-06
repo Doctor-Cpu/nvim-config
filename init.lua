@@ -74,11 +74,16 @@ require('nightfox').setup({
 		},
 		groups = {
 				all = {
-						NormalFLoat = { fg = "fg1", bg = "NONE" },
+						NormalFloat = { fg = "fg1", bg = "NONE" },
+						NormalNC = { fg = "fg1", bg = "NONE" }
 				}
 		}
 })
 vim.cmd("colorscheme nordfox")
+
+require("notify").setup({
+  background_colour = "#000000",
+})
 
 -- Fuzzy selector
 local builtin = require('telescope.builtin')
@@ -254,12 +259,9 @@ neogit.setup {
 				diffview = true,
 		}
 }
-
 local gitsigns = require("gitsigns")
 gitsigns.setup {}
-vim.keymap.set('n', '<leader-gb>', ':Gitsigns line_blame<CR>', {})
-
-
+vim.keymap.set('n', 'gb', ':Gitsigns blame_line<CR>', {})
 
 -- Rpc
 local rpc = require("neocord")
