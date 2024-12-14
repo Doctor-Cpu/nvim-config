@@ -58,7 +58,8 @@ local plugins = {
 	{ 'RRethy/vim-illuminate' },
 	{ 'mvllow/modes.nvim' },
 	{ 'rcarriga/nvim-dap-ui', dependencies = { 'mfussenegger/nvim-dap', 'nvim-neotest/nvim-nio' }},
-	{ 'RaafatTurki/hex.nvim' }
+	{ 'RaafatTurki/hex.nvim' },
+	{ 'marcussimonsen/let-it-snow.nvim', cmd = "LetItSnow", opts = { delay = 100 } }
 }
 local opts = {}
 
