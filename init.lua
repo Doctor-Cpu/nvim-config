@@ -110,8 +110,11 @@ vim.keymap.set('n', '<leader>fb', builtin.buffers, {})
 -- Formating
 local configs = require("nvim-treesitter.configs")
 configs.setup({
-	ensure_installed = { "lua", "javascript", "html", "bash", "c", "c_sharp", "cmake", "css", "git_config", "git_rebase", "gitattributes", "gitcommit", "gitignore", "ini", "json", "make", "python", "rust", "yaml", "asm", "xml" },
-	highlight = { enable = true },
+	ensure_installed = { "lua", "javascript", "html", "bash", "c", "c_sharp", "cmake", "css", "git_config", "git_rebase", "gitattributes", "gitcommit", "gitignore", "ini", "json", "make", "python", "rust", "yaml", "asm", "xml", "glsl" },
+	highlight = {
+		enable = true,
+		additional_vim_regex_highlighting = false
+	},
 	indent = { enable = true },
 })
 
@@ -221,6 +224,12 @@ require'lspconfig'.rust_analyzer.setup {
 		}
 	}
 }
+
+vim.lsp.start_client({
+  name = 'robust-lsp',
+  cmd = {'robust-lsp'},
+  root_dir = vim.fs.dirname(vim.fs.find({'RobustToolbox'})[1]),
+})
 
 require('lspsaga').setup {
 	symbol_in_winbar = { enable = false },
