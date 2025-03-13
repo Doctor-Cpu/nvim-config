@@ -118,6 +118,12 @@ configs.setup({
 	indent = { enable = true },
 })
 
+vim.filetype.add({
+	extension = {
+		xaml = 'xml'
+	}
+})
+
 local highlight = {
 	"RainbowRed",
 	"RainbowYellow",
@@ -195,7 +201,7 @@ require('lualine').setup()
 -- LSP
 require("mason").setup()
 require("mason-lspconfig").setup {
-	ensure_installed = { "lua_ls", "rust_analyzer", "bashls", "clangd", "cmake", "cssls", "html", "jsonls", "biome", "taplo", "gitlab_ci_ls", "ruff", "csharp_ls", "lemminx", "pyright" }
+	ensure_installed = { "lua_ls", "rust_analyzer", "bashls", "clangd", "cmake", "cssls", "html", "jsonls", "biome", "taplo", "gitlab_ci_ls", "ruff", "csharp_ls", "lemminx", "pyright", "typos_lsp" }
 }
 local capabilities = require('cmp_nvim_lsp').default_capabilities()
 local lspconfig = require('lspconfig')
@@ -212,10 +218,10 @@ lspconfig.taplo.setup({capabilities = capabilities})
 lspconfig.gitlab_ci_ls.setup({capabilities = capabilities})
 lspconfig.ruff.setup({capabilities = capabilities})
 lspconfig.csharp_ls.setup({capabilities = capabilities})
-lspconfig.lemminx.setup({capabilities = capabilities})
 lspconfig.pyright.setup({capabilities = capabilities})
+lspconfig.typos_lsp.setup({capabilities = capabilities})
 
-require'lspconfig'.rust_analyzer.setup {
+lspconfig.rust_analyzer.setup {
 	settings = {
     		['rust-analyzer'] = {
 			cachePriming = {
@@ -225,11 +231,20 @@ require'lspconfig'.rust_analyzer.setup {
 	}
 }
 
-vim.lsp.start_client({
-  name = 'robust-lsp',
-  cmd = {'robust-lsp'},
-  root_dir = vim.fs.dirname(vim.fs.find({'RobustToolbox'})[1]),
-})
+lspconfig.lemminx.setup {
+	filetypes = { "xml", "xsd", "xsl", "xaml", "xslt", "svg" }
+}
+
+require('lspconfig.configs').robust_lsp = {
+	default_config = {
+    		cmd = { "robust-lsp" },
+      		filetypes = { 'cs', 'yml' },
+    		root_dir = lspconfig.util.root_pattern("RobustToolbox"),
+    		settings = {}
+	}
+}
+
+lspconfig.robust_lsp.setup {}
 
 require('lspsaga').setup {
 	symbol_in_winbar = { enable = false },
