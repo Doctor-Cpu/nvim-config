@@ -1,7 +1,6 @@
 vim.cmd("set number")
 vim.cmd("set relativenumber")
 vim.cmd("set cursorline")
-vim.cmd("hi CursorLine cterm=NONE ctermbg=242")
 vim.cmd("set tabstop=8")
 vim.cmd("set shiftwidth=8")
 vim.cmd("set ignorecase")
@@ -22,6 +21,7 @@ vim.g.mapleader = " "
 
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
+using.cmd("set smarttab")
 	vim.fn.system({
 		"git",
 		"clone",
@@ -35,7 +35,7 @@ vim.opt.rtp:prepend(lazypath)
 
 local plugins = {
 	{ "EdenEast/nightfox.nvim" },
-	{ 'nvim-telescope/telescope.nvim', tag = '0.1.5', dependencies = { 'nvim-lua/plenary.nvim' }},
+	{ 'nvim-telescope/telescope.nvim', branch = '0.1.x', dependencies = { 'nvim-lua/plenary.nvim' }},
 	{ 'nvim-telescope/telescope-ui-select.nvim' },
 	{ "nvim-treesitter/nvim-treesitter", build = ":TSUpdate"},
 	{ "nvim-neo-tree/neo-tree.nvim", branch = "v3.x", dependencies = { "nvim-lua/plenary.nvim", "nvim-tree/nvim-web-devicons", "MunifTanjim/nui.nvim",}},
@@ -44,6 +44,8 @@ local plugins = {
 	{ "williamboman/mason-lspconfig.nvim" },
 	{ "neovim/nvim-lspconfig" },
 	-- { 'hrsh7th/nvim-cmp' },
+	{ "iabdelkareem/csharp.nvim", dependencies = { "williamboman/mason.nvim", "mfussenegger/nvim-dap", "Tastyep/structlog.nvim" } },
+	{ "seblyng/roslyn.nvim", ft = "cs", },
 	{ "iguanacucumber/magazine.nvim", name = "nvim-cmp" },
 	{ 'hrsh7th/cmp-nvim-lsp' },
 	{ 'L3MON4D3/LuaSnip', version = "v2.*", build = "make install_jsregexp", dependencies = { 'rafamadriz/friendly-snippets', }},
@@ -85,8 +87,11 @@ require('nightfox').setup({
 })
 vim.cmd("colorscheme nordfox")
 
+vim.cmd("hi CursorLine cterm=NONE ctermbg=242")
+vim.cmd("hi StatusLine guifg=NONE guibg=NONE")
+
 require("notify").setup({
-  background_colour = "#000000",
+	background_colour = "#000000",
 })
 
 -- Fuzzy selector
@@ -178,6 +183,11 @@ require('rainbow-delimiters.setup').setup { highlight = highlight }
 
 require('illuminate').configure({})
 
+vim.diagnostic.config({
+	severity_sort = true,
+	virtual_lines = true,
+})
+
 -- File Explorer
 vim.keymap.set('n', '<C-f>', ':Neotree filesystem reveal left<CR>', {})
 require("noice").setup({
@@ -195,16 +205,17 @@ require("noice").setup({
 	}
 })
 
--- GIt Status
+-- Git Status
 require('lualine').setup()
 
 -- LSP
 require("mason").setup()
 require("mason-lspconfig").setup {
-	ensure_installed = { "lua_ls", "rust_analyzer", "bashls", "clangd", "cmake", "cssls", "html", "jsonls", "biome", "taplo", "gitlab_ci_ls", "ruff", "csharp_ls", "lemminx", "pyright", "typos_lsp" }
+	ensure_installed = { "lua_ls", "rust_analyzer", "bashls", "clangd", "cmake", "cssls", "html", "jsonls", "biome", "taplo", "gitlab_ci_ls", "ruff", "lemminx", "pyright", "typos_lsp" }
 }
 local capabilities = require('cmp_nvim_lsp').default_capabilities()
 local lspconfig = require('lspconfig')
+lspconfig.inlay_hints = { enabled = true },
 lspconfig.lua_ls.setup({capabilities = capabilities})
 lspconfig.rust_analyzer.setup({capabilities = capabilities})
 lspconfig.bashls.setup({capabilities = capabilities})
@@ -217,7 +228,6 @@ lspconfig.biome.setup({capabilities = capabilities})
 lspconfig.taplo.setup({capabilities = capabilities})
 lspconfig.gitlab_ci_ls.setup({capabilities = capabilities})
 lspconfig.ruff.setup({capabilities = capabilities})
-lspconfig.csharp_ls.setup({capabilities = capabilities})
 lspconfig.pyright.setup({capabilities = capabilities})
 lspconfig.typos_lsp.setup({capabilities = capabilities})
 
@@ -241,7 +251,8 @@ require('lspconfig.configs').robust_lsp = {
       		filetypes = { 'cs', 'yml' },
     		root_dir = lspconfig.util.root_pattern("RobustToolbox"),
     		settings = {}
-	}
+	},
+	capabilities = capabilities
 }
 
 lspconfig.robust_lsp.setup {}
@@ -258,13 +269,59 @@ require('lspsaga').setup {
 	}
 }
 
+require('csharp').setup {
+	omnisharp = {
+		enable = false
+	}
+}
+
+require('roslyn').setup {
+	config = {
+		settings = {
+			["csharp|background_analysis"] = {
+				dotnet_compiler_diagnostics_scope = "fullSolution"
+			},
+            		["csharp|inlay_hints"] = {
+				csharp_enable_inlay_hints_for_implicit_object_creation = true,
+				csharp_enable_inlay_hints_for_lambda_parameter_types = true,
+				dotnet_enable_inlay_hints_for_indexer_parameters = true,
+				dotnet_enable_inlay_hints_for_literal_parameters = true,
+				dotnet_enable_inlay_hints_for_object_creation_parameters = true,
+				dotnet_enable_inlay_hints_for_other_parameters = true,
+				dotnet_enable_inlay_hints_for_parameters = true,
+				dotnet_suppress_inlay_hints_for_parameters_that_differ_only_by_suffix = true,
+				dotnet_suppress_inlay_hints_for_parameters_that_match_method_intent = true,
+			},
+            		["csharp|code_lens"] = {
+                		dotnet_enable_references_code_lens = true,
+            		}
+		}
+        }
+}
+
+vim.lsp.inlay_hint.enable()
+
+vim.api.nvim_create_autocmd({ "InsertLeave" }, {
+	pattern = "*",
+	callback = function()
+		local clients = vim.lsp.get_clients({ name = "roslyn" })
+		if not clients or #clients == 0 then
+			return
+		end
+
+		local buffers = vim.lsp.get_buffers_by_client_id(clients[1].id)
+		for _, buf in ipairs(buffers) do
+			vim.lsp.util._refresh("textDocument/diagnostic", { bufnr = buf })
+			vim.lsp.codelens.refresh()
+		end
+	end,
+})
+
 vim.keymap.set('n', 'K', ':Lspsaga hover_doc<CR>', {})
 vim.keymap.set('n', 'gD', ':Lspsaga goto_definition<CR>', {})
 vim.keymap.set('n', 'gd', ':Lspsaga peek_definition<CR>', {})
 vim.keymap.set('n', 'gf', ':Lspsaga finder<CR>', {})
 vim.keymap.set({ 'n', 'v' }, '<leader>ca', ':Lspsaga code_action<CR>', {})
-
-vim.cmd("LspStart")
 
 -- DAP
 local dap = require("dap")
@@ -274,23 +331,6 @@ vim.keymap.set('n', '<leader>dc', function() dap.continue() end)
 vim.keymap.set('n', '<leader>do', function() dap.step_over() end)
 vim.keymap.set('n', '<leader>di', function() dap.step_into() end)
 vim.keymap.set('n', '<leader>de', function() dap.step_out() end)
-
-dap.adapters.coreclr = {
-	type = 'executable',
-	command = '/home/gwen/.local/share/nvim/mason/bin/netcoredbg',
-	args = {'--interpreter=vscode'}
-}
-
-dap.configurations.cs = {
-	{
-		type = "coreclr",
-    		name = "launch - netcoredbg",
-    		request = "launch",
-		program = function()
-			return vim.fn.input('Path to dll', vim.fn.getcwd() .. '/bin/Debug/', 'file')
-		end,
-	},
-}
 
 local dapui = require("dapui")
 dapui.setup({
