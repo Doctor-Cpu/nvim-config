@@ -44,7 +44,6 @@ local plugins = {
 	{ "williamboman/mason-lspconfig.nvim" },
 	{ "neovim/nvim-lspconfig" },
 	-- { 'hrsh7th/nvim-cmp' },
-	{ "iabdelkareem/csharp.nvim", dependencies = { "williamboman/mason.nvim", "mfussenegger/nvim-dap", "Tastyep/structlog.nvim" } },
 	{ "seblyng/roslyn.nvim", ft = "cs", },
 	{ "iguanacucumber/magazine.nvim", name = "nvim-cmp" },
 	{ 'hrsh7th/cmp-nvim-lsp' },
@@ -88,7 +87,7 @@ require('nightfox').setup({
 vim.cmd("colorscheme nordfox")
 
 vim.cmd("hi CursorLine cterm=NONE ctermbg=242")
-vim.cmd("hi StatusLine guifg=NONE guibg=NONE")
+vim.cmd("hi StatusLine guifg=NONE guibg=NONE cterm=NONE ctermbg=NONE")
 
 require("notify").setup({
 	background_colour = "#000000",
@@ -125,7 +124,8 @@ configs.setup({
 
 vim.filetype.add({
 	extension = {
-		xaml = 'xml'
+		xaml = 'xml',
+		swsl = 'glsl'
 	}
 })
 
@@ -185,7 +185,7 @@ require('illuminate').configure({})
 
 vim.diagnostic.config({
 	severity_sort = true,
-	virtual_lines = true,
+	virtual_text = true,
 })
 
 -- File Explorer
@@ -269,15 +269,13 @@ require('lspsaga').setup {
 	}
 }
 
-require('csharp').setup {
-	omnisharp = {
-		enable = false
-	}
-}
-
 require('roslyn').setup {
 	config = {
 		settings = {
+			["csharp|completion"] = {
+				dotnet_show_completion_items_from_unimported_namespaces = true,
+				dotnet_show_name_completion_suggestions = true
+			},
 			["csharp|background_analysis"] = {
 				dotnet_compiler_diagnostics_scope = "fullSolution"
 			},
@@ -331,6 +329,12 @@ vim.keymap.set('n', '<leader>dc', function() dap.continue() end)
 vim.keymap.set('n', '<leader>do', function() dap.step_over() end)
 vim.keymap.set('n', '<leader>di', function() dap.step_into() end)
 vim.keymap.set('n', '<leader>de', function() dap.step_out() end)
+
+dap.adapters.coreclr = {
+	type = 'executable',
+	command = '/home/gwen/.local/share/nvim/mason/bin/netcoredbg',
+	args = {'--interpreter=vscode'}
+}
 
 local dapui = require("dapui")
 dapui.setup({
