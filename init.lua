@@ -209,7 +209,13 @@ require("noice").setup({
 require('lualine').setup()
 
 -- LSP
-require("mason").setup()
+require("mason").setup({
+	registries = {
+		"github:mason-org/mason-registry",
+        	"github:Crashdummyy/mason-registry",
+    	},
+})
+
 require("mason-lspconfig").setup {
 	ensure_installed = { "lua_ls", "rust_analyzer", "bashls", "clangd", "cmake", "cssls", "html", "jsonls", "biome", "taplo", "gitlab_ci_ls", "ruff", "lemminx", "pyright", "typos_lsp" }
 }
@@ -426,7 +432,11 @@ neogit.setup {
 	}
 }
 local gitsigns = require("gitsigns")
-gitsigns.setup {}
+gitsigns.setup {
+preview_config = {
+		border = "single"
+	}
+}
 vim.keymap.set('n', 'gb', ':Gitsigns blame_line<CR>', {})
 
 -- Rpc
